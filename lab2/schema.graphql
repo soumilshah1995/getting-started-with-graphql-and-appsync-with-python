@@ -1,0 +1,10 @@
+type Message {
+    userId: Int!
+    id: Int!
+    title: String!
+    completed: Boolean!
+}
+
+type Query {
+    getUsers: Message!
+}

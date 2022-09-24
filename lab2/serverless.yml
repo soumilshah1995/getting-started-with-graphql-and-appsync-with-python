@@ -1,0 +1,54 @@
+useDotenv: true
+
+service: ${env:SERVICE_NAME}
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.7
+  memorySize: 512
+  timeout: 600
+  architecture: x86_64
+  stage: ${opt:stage, 'dev'}
+  stackTags:
+    product: soumilshah
+    env: qa
+    created-date: 2022-04-26
+    team: python-dev
+    customer-impact: false
+    terraform: false
+
+plugins:
+  - serverless-appsync-plugin
+
+package:
+  exclude:
+    - '**/*'
+  include:
+    - '*.py'
+
+
+custom:
+  appSync:
+    name: "myApis"
+    schema:
+      - "schema.graphql"
+    authenticationType: API_KEY
+    mappingTemplates:
+      - type: Query
+        request: false
+        response: false
+        dataSource:  ${env:LAMBDA_SOURCE}
+        field: getUsers
+    dataSources:
+      - type: AWS_LAMBDA
+        name: ${env:LAMBDA_SOURCE}
+        description: 'Lambda DataSource'
+        config:
+          lambdaFunctionArn: arn:aws:lambda:${env:REGION}:${env:ACCOUNT}:function:${env:SERVICE_NAME}-${opt:stage, 'dev'}-lambda
+
+
+functions:
+  lambda:
+    handler: lambda_function.getUsers
