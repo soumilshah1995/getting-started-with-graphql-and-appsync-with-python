@@ -1,0 +1,119 @@
+
+
+user_id: ID!
+product_id: String!
+product_name: String
+product_price: String
+
+---------------------------------------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------
+CREATE
+--------------------------------------------------------------------------
+
+mutation createUsersProduct($createusersproductinput: CreateUsersProductInput!) {
+  createUsersProduct(input: $createusersproductinput) {
+    user_id
+    product_id
+    product_name
+    product_price
+  }
+}
+
+{
+  "createusersproductinput": {
+    "user_id": "1",
+    "product_id": "1",
+    "product_name": "python for begineers",
+    "product_price": "2000"
+  }
+}
+
+query listUsersProducts {
+  listUsersProducts {
+    items {
+      user_id
+      product_id
+      product_name
+      product_price
+    }
+  }
+}
+
+
+{
+  "createusersproductinput": {
+    "user_id": "1",
+    "product_id": "1",
+    "product_name": "python for begineers",
+    "product_price": "2000"
+  }
+}
+---------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------
+LIST ITEMS
+--------------------------------------------------------------------------
+query MyQuery {
+  listUsersProducts(limit: 2, nextToken: "") {
+    nextToken
+    items {
+      product_id
+      product_name
+      product_price
+      user_id
+    }
+  }
+}
+--------------------------------------------------------------------------
+QUERY GSI INDEX
+--------------------------------------------------------------------------
+
+query MyQuery {
+  queryUsersProductsByUserIdProductNameIndex(product_id: "1") {
+    nextToken
+    items {
+      product_id
+      product_name
+      product_price
+    }
+  }
+}
+
+--------------------------------------------------------------------------
+QUERY PK AND SK
+--------------------------------------------------------------------------
+query MyQuery {
+  getUsersProduct(product_id: "1", user_id: "1") {
+    product_id
+    product_name
+    product_price
+  }
+}
+
+---------------------------------------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------
+DELETE
+--------------------------------------------------------------------------
+mutation MyMutation {
+  deleteUsersProduct(input: {product_id: "1", user_id: "1"}) {
+    product_id
+    product_name
+    product_price
+    user_id
+  }
+}
+
+
+--------------------------------------------------------------------------
+UPDATE
+--------------------------------------------------------------------------
+mutation MyMutation {
+  updateUserProduct(input: {product_id: "1", product_name: "Python super advance ", product_price: "3000", user_id: "1"}) {
+    product_id
+    product_name
+    product_price
+    user_id
+  }
+}
