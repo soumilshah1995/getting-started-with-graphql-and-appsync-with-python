@@ -1,0 +1,13 @@
+type Accounts {
+    _id : ID!
+    account_id : String!
+    limit : String!
+    products : [String!]
+}
+
+
+
+type Query {
+    getAccountId(id: ID!) : Accounts!
+
+}

@@ -32,12 +32,12 @@ def main():
     app_sync = AppSync(init_params)
 
     mutation = """
-     query MyQuery {
-          getUsers {
-            completed
-            id
-            title
-            userId
+   query MyQuery {
+          getAccountId(id: "5ca4bbc7a2dd94ee58162393") {
+            _id
+            account_id
+            limit
+            products
           }
         }
 
