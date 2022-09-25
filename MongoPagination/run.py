@@ -45,7 +45,7 @@ class MongoDB:
 
         return total_count
 
-    def get_data(self, query={}, sort=pymongo.ASCENDING, mongo_batch_size=10):
+    def get_data_paginate(self, query={}, sort=pymongo.ASCENDING, mongo_batch_size=10):
 
         total_count = self.cursor.count_documents(filter=query)
 
@@ -59,14 +59,14 @@ class MongoDB:
             skips = page_size * page_number
             data = list(
                 self.cursor.find(query)
-                .skip(skips)
-                .limit(page_size)
-                .sort("createdAt", sort)
+                    .skip(skips)
+                    .limit(page_size)
+                    .sort("createdAt", sort)
             )
             yield data
 
-    def get_data_paginate(
-        self, query={}, sort=pymongo.ASCENDING, mongo_batch_size=10, page_number=1
+    def get_data_paginate_page_numbers(
+            self, query={}, sort=pymongo.ASCENDING, mongo_batch_size=10, page_number=1
     ):
 
         total_count = self.cursor.count_documents(filter=query)
@@ -92,50 +92,72 @@ class MongoDB:
         return data, page_left_to_iterate
 
 
-def mongo_client():
-    try:
+def paginate_approach_1():
 
-        mongo_connection_string = "mongodb+srv://{}:{}@{}/?retryWrites=true&w=majority".format(
-            urllib.parse.quote_plus(os.getenv("MONGO_USERNAME")),
-            urllib.parse.quote_plus(os.getenv("MONGO_PASSWORD")),
-            os.getenv("MONGO_DOMAIN"),
+    mongo_connection_string = "mongodb+srv://{}:{}@{}/?retryWrites=true&w=majority".format(
+        urllib.parse.quote_plus(os.getenv("MONGO_USERNAME")),
+        urllib.parse.quote_plus(os.getenv("MONGO_PASSWORD")),
+        os.getenv("MONGO_DOMAIN"),
+    )
+
+    client = MongoDB(
+        mongo_db_settings=MongoDbSettings(
+            connection_string=mongo_connection_string,
+            database_name="sample_analytics",
+            collection_name="accounts",
         )
+    )
 
-        client = MongoDB(
-            mongo_db_settings=MongoDbSettings(
-                connection_string=mongo_connection_string,
-                database_name="sample_analytics",
-                collection_name="accounts",
-            )
+    """Approach 1"""
+    page = 0
+    batch = 200
+
+    response_data, page_left = client.get_data_paginate_page_numbers(
+        query={}, mongo_batch_size=batch, page_number=page
+    )
+    print("page", page, "page_left", page_left)
+
+    while page_left != 0:
+        page = page + 1
+        response_data, page_left = client.get_data_paginate_page_numbers(
+            query={}, mongo_batch_size=batch, page_number=page
         )
-        """return mongo client from instance MONGODB """
-        return client.client
-
-    except Exception as e:
-        print("erroe", e)
-        return None
+        print("page", page, "page_left", page_left)
 
 
-def handler(event=None, context=None):
-    if event.get("info").get("fieldName") == "getAccountId":
-        """
-        Add business Logic here 
-        """
+def paginate_approach_2():
+    mongo_connection_string = "mongodb+srv://{}:{}@{}/?retryWrites=true&w=majority".format(
+        urllib.parse.quote_plus(os.getenv("MONGO_USERNAME")),
+        urllib.parse.quote_plus(os.getenv("MONGO_PASSWORD")),
+        os.getenv("MONGO_DOMAIN"),
+    )
 
-        feilds = event.get("arguments")
-        id = feilds.get("id")
-        print("id", id)
-
-        client = mongo_client()
-        print("client", client)
-
-        resposne = client["sample_analytics"]["accounts"].find_one(
-            {"_id": ObjectId(id)}
+    client = MongoDB(
+        mongo_db_settings=MongoDbSettings(
+            connection_string=mongo_connection_string,
+            database_name="sample_analytics",
+            collection_name="accounts",
         )
-        resposne["_id"] = resposne["_id"].__str__()
-        print("resposne", resposne)
-        return resposne
+    )
+
+    response_data = client.get_data_paginate(query={}, mongo_batch_size=200)
+    count = 0
+
+    while True:
+        try:
+            print("count", count)
+            batch_data = next(response_data)
+            count = count + 1
+        except StopIteration:
+            break
+        except Exception as e:
+            break
+    print("total batch couunt", count)
 
 
 def test():
-    pass
+    paginate_approach_1()
+    print("-------------")
+    paginate_approach_2()
+
+test()
